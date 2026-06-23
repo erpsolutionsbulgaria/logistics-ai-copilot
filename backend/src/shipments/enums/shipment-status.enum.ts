@@ -1,0 +1,7 @@
+export enum ShipmentStatus {
+  DRAFT = 'DRAFT',
+  PROCESSING = 'PROCESSING',
+  REVIEW_REQUIRED = 'REVIEW_REQUIRED',
+  READY = 'READY',
+  COMPLETED = 'COMPLETED',
+}
