@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { CreateDocumentDto } from './dto/create-document.dto';
 import { DocumentsService } from './documents.service';
+import { ExtractionResult } from './entities/extraction-result.entity';
 
 @Controller('shipments/:shipmentId/documents')
 export class DocumentsController {
@@ -17,5 +18,20 @@ export class DocumentsController {
     @Body() createDocumentDto: CreateDocumentDto,
   ) {
     return this.documentsService.create(shipmentId, createDocumentDto);
+  }
+
+  @Post(':documentId/process')
+  process(
+    @Param('shipmentId') shipmentId: string,
+    @Param('documentId') documentId: string,
+  ) {
+    return this.documentsService.process(shipmentId, documentId);
+  }
+
+  @Get(':documentId/extraction')
+  getExtractionResult(
+    @Param('documentId') documentId: string,
+  ) {
+    return this.documentsService.getExtractionResult(documentId);
   }
 }
