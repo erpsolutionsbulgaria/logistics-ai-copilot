@@ -18,6 +18,14 @@ export class ShipmentsController {
 
   @Post()
   create(@Body() createShipmentDto: CreateShipmentDto) {
+    console.log('CONTROLLER >>>>>>> ', createShipmentDto);
     return this.shipmentsService.create(createShipmentDto);
+  }
+
+  @Post(':shipmentId/validate')
+  validate(
+    @Param('shipmentId') shipmentId: string,
+  ) {
+     return this.shipmentsService.validate(shipmentId);
   }
 }
