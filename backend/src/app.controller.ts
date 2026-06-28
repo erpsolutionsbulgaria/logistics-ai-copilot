@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Post } from '@nestjs/common';
-import { AppService } from './app.service';
-import { ShipmentsService } from './shipments/shipments.service';
+import { AppService } from './app.service.js';
+import { ShipmentsService } from './shipments/shipments.service.js';
 
 @Controller()
 export class AppController {
@@ -25,12 +25,4 @@ export class AppController {
       externalMb: Math.round(memory.external / 1024 / 1024),
     };
   }
-
-  @Post('debug/fill-memory/:count')
-  debugFillMemory(
-    @Param('count') count: number,
-  ) {
-     return this.shipmentsService.debugFillMemory(count);
-  }
-
 }

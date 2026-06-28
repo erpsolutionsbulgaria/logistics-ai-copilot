@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { ShipmentsService } from './shipments.service';
-import { CreateShipmentDto } from './dto/create-shipment.dto';
+import { ShipmentsService } from './shipments.service.js';
+import { CreateShipmentDto } from './dto/create-shipment.dto.js';
 
 @Controller('shipments')
 export class ShipmentsController {
@@ -18,7 +18,6 @@ export class ShipmentsController {
 
   @Post()
   create(@Body() createShipmentDto: CreateShipmentDto) {
-    console.log('CONTROLLER >>>>>>> ', createShipmentDto);
     return this.shipmentsService.create(createShipmentDto);
   }
 

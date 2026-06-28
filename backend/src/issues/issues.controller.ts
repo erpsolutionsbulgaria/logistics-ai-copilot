@@ -1,5 +1,5 @@
 import { Controller, Get, Param } from '@nestjs/common';
-import { IssuesService } from './issues.service';
+import { IssuesService } from './issues.service.js';
 
 @Controller('issues')
 export class IssuesController {
@@ -7,7 +7,7 @@ export class IssuesController {
     private readonly issuesService: IssuesService,
   ) {}
 
-  @Get()
+  @Get(':shipmentId')
   findByShipment(
     @Param('shipmentId') shipmentId: string,
   ) {

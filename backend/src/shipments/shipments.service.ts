@@ -1,37 +1,33 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateShipmentDto } from './dto/create-shipment.dto';
-import { ShipmentStatus } from './enums/shipment-status.enum';
-import { randomUUID } from 'crypto';
-import { Shipment } from './entities/shipment.entity';
-import { DocumentsService } from 'src/documents/documents.service';
-import { IssuesService } from 'src/issues/issues.service';
-import { IssueSeverity } from 'src/issues/enums/issue-severity.entity';
-import { Issue } from 'src/issues/entities/issue.entity';
+import type { Issue } from '../../generated/prisma/client.js';
+import { CreateShipmentDto } from './dto/create-shipment.dto.js';
+import { ShipmentStatus } from './enums/shipment-status.enum.js';
+import { DocumentsService } from '../documents/documents.service.js';
+import { IssuesService } from '../issues/issues.service.js';
+import { IssueSeverity } from '../issues/enums/issue-severity.entity.js';
+import { PrismaService } from '../prisma/prisma.service.js';
 
 @Injectable()
 export class ShipmentsService {
-  private shipments: Shipment[] = [
-    {
-      id: randomUUID(),
-      reference: 'SHP-001',
-      clientName: 'Acme Logistics',
-      status: ShipmentStatus.DRAFT,
-    },
-  ];
 
   constructor(
     private readonly documentsService: DocumentsService,
     private readonly issuesService: IssuesService,
+    private readonly prismaService: PrismaService,
   ) {}
 
-  findAll(): Shipment[] {
-    return this.shipments;
+  async findAll() {
+    return this.prismaService.shipment.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
   }
 
-  findOne(id: string): Shipment {
-    const shipment = this.shipments.find(
-      shipment => shipment.id === id,
-    );
+  async findOne(id: string) {
+    const shipment = await this.prismaService.shipment.findUnique({
+      where: { id },
+    });
 
     if (!shipment) {
       throw new NotFoundException(
@@ -42,37 +38,33 @@ export class ShipmentsService {
     return shipment;
   }
 
-  create(createShipmentDto: CreateShipmentDto): Shipment {
-    console.log('>>>>>>> ', createShipmentDto);
-    const shipment: Shipment = {
-      id: randomUUID(),
-
-      ...createShipmentDto,
-      status: createShipmentDto.status ?? ShipmentStatus.DRAFT,
-    };
-
-    this.shipments.push(shipment);
-
-    return shipment;
+  async create(createShipmentDto: CreateShipmentDto) {
+    return this.prismaService.shipment.create({
+      data: {
+        reference: createShipmentDto.reference,
+        clientName: createShipmentDto.clientName,
+        status: createShipmentDto.status ?? ShipmentStatus.DRAFT,
+      },
+    });
   }
 
-  validate(shipmentId: string) {
-    const shipment = this.findOne(shipmentId);
+  async validate(shipmentId: string) {
+    const shipment = await this.findOne(shipmentId);
   
     const documents =
-      this.documentsService.findByShipmentId(shipmentId);
+      await this.documentsService.findByShipmentId(shipmentId);
   
-    const createdIssues: Issue[] = [];
+    const createdIssues: Promise<Issue>[] = [];
   
     if (documents.length === 0) {
-      const issue = this.issuesService.create(
-        shipment.id,
-        IssueSeverity.HIGH,
-        'Missing documents',
-        'Shipment does not contain any uploaded documents.',
+      createdIssues.push(
+        this.issuesService.create(
+          shipment.id,
+          IssueSeverity.HIGH,
+          'Missing documents',
+          'Shipment does not contain any uploaded documents.',
+        ),
       );
-  
-      createdIssues.push(issue);
     }
   
     const extractedDocuments = documents.filter(
@@ -82,34 +74,39 @@ export class ShipmentsService {
     );
   
     if (documents.length > 0) {
-      const issue = this.issuesService.create(
-        shipment.id,
-        IssueSeverity.MEDIUM,
-        'No extracted documents',
-        'Shipment has documents, but none of them have been processed yet.',
+      createdIssues.push(
+        this.issuesService.create(
+          shipment.id,
+          IssueSeverity.MEDIUM,
+          'No extracted documents',
+          'Shipment has documents, but none of them have been processed yet.',
+        ),
       );
-  
-      createdIssues.push(issue);
     }
   
     for (const document of extractedDocuments) {
-      const extractionResult =
-        this.documentsService.getExtractionResult(document.id);
-  
+      const extractionResult = await this.documentsService.getExtractionResult(document.id);
+      const structuredData =
+        (extractionResult?.structuredData as Record<string, unknown> | null) ?? {};
+
       if (!extractionResult) {
-        const issue = this.issuesService.create(
-          shipment.id,
-          IssueSeverity.HIGH,
-          'Missing extraction result',
-          `Document ${document.id} is marked as extracted but has no extraction result.`,
+        createdIssues.push(
+          this.issuesService.create(
+            shipment.id,
+            IssueSeverity.HIGH,
+            'Missing extraction result',
+            `Document ${document.id} is marked as extracted but has no extraction result.`,
+          ),
         );
-  
-        createdIssues.push(issue);
-  
+
         continue;
       }
-  
-      if (!extractionResult.invoiceNumber) {
+
+      const invoiceNumber = structuredData.invoiceNumber;
+      const totalAmount = structuredData.totalAmount;
+      const currency = structuredData.currency;
+
+      if (!invoiceNumber) {
         createdIssues.push(
           this.issuesService.create(
             shipment.id,
@@ -119,11 +116,8 @@ export class ShipmentsService {
           ),
         );
       }
-  
-      if (
-        extractionResult.totalAmount === undefined ||
-        extractionResult.totalAmount <= 0
-      ) {
+
+      if (typeof totalAmount !== 'number' || totalAmount <= 0) {
         createdIssues.push(
           this.issuesService.create(
             shipment.id,
@@ -133,8 +127,8 @@ export class ShipmentsService {
           ),
         );
       }
-  
-      if (!extractionResult.currency) {
+
+      if (!currency) {
         createdIssues.push(
           this.issuesService.create(
             shipment.id,
@@ -145,24 +139,15 @@ export class ShipmentsService {
         );
       }
     }
-  
+
+    const issues = await Promise.all(createdIssues);
+
     return {
       shipmentId: shipment.id,
       documentsChecked: documents.length,
-      issuesCreated: createdIssues.length,
-      issues: createdIssues,
+      issuesCreated: issues.length,
+      issues,
     };
   }
 
-  debugFillMemory(count: number) {
-    for (let i = 0; i < count; i++) {
-      this.shipments.push({
-        id: crypto.randomUUID(),
-        reference: `SHP-${i}`,
-        clientName: 'Test',
-        status: ShipmentStatus.DRAFT,
-      });
-    }
-      return this.shipments.length;
-  }
 }

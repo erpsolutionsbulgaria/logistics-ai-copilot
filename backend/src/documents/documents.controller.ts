@@ -1,7 +1,6 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { CreateDocumentDto } from './dto/create-document.dto';
-import { DocumentsService } from './documents.service';
-import { ExtractionResult } from './entities/extraction-result.entity';
+import { CreateDocumentDto } from './dto/create-document.dto.js';
+import { DocumentsService } from './documents.service.js';
 
 @Controller('shipments/:shipmentId/documents')
 export class DocumentsController {

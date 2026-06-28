@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ShipmentStatus {
+  DRAFT
+  PROCESSING
+  REVIEW_REQUIRED
+  READY
+  COMPLETED
+}
+
+enum DocumentType {
+  INVOICE
+  PACKING_LIST
+  BILL_OF_LADING
+  CUSTOMS_DECLARATION
+  OTHER
+}
+
+enum DocumentStatus {
+  UPLOADED
+  EXTRACTING
+  EXTRACTED
+  VALIDATION_FAILED
+  REVIEW_REQUIRED
+  APPROVED
+}
+
+enum IssueSeverity {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum ExtractionStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  APPROVED
+}
+
+enum ExtractedFieldStatus {
+  AUTO_ACCEPTED
+  NEEDS_REVIEW
+  CORRECTED
+  REJECTED
+}
+
+model Shipment {
+  id         String         @id @default(uuid())
+  reference  String
+  clientName String
+  status     ShipmentStatus @default(DRAFT)
+
+  documents  Document[]
+  issues     Issue[]
+
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+}
+
+model Document {
+  id               String         @id @default(uuid())
+  shipmentId       String
+  type             DocumentType
+  originalFilename String
+  status           DocumentStatus @default(UPLOADED)
+
+  shipment          Shipment          @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  extractionResults ExtractionResult[]
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model ExtractionResult {
+  id             String           @id @default(uuid())
+  documentId     String
+  status         ExtractionStatus @default(PENDING)
+
+  model          String?
+  promptVersion  String?
+  rawOutput      Json?
+  structuredData Json?
+
+  document        Document         @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  extractedFields ExtractedField[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ExtractedField {
+  id                 String               @id @default(uuid())
+  extractionResultId String
+
+  fieldName          String
+  value              String?
+  confidence         Float?
+  status             ExtractedFieldStatus @default(NEEDS_REVIEW)
+
+  sourcePage         Int?
+  sourceText         String?
+
+  extractionResult   ExtractionResult @relation(fields: [extractionResultId], references: [id], onDelete: Cascade)
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model Issue {
+  id          String        @id @default(uuid())
+  shipmentId  String
+  severity    IssueSeverity
+  title       String
+  description String
+
+  shipment    Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

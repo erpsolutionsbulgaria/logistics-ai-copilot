@@ -1,64 +1,99 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { randomUUID } from 'crypto';
-import { CreateDocumentDto } from './dto/create-document.dto';
-import { Document } from './entities/document.entity';
-import { DocumentStatus } from './enums/document-status.enum';
-import { ExtractionResult } from './entities/extraction-result.entity';
+import { $Enums, type Document, type ExtractionResult } from '../../generated/prisma/client.js';
+import { CreateDocumentDto } from './dto/create-document.dto.js';
+import { DocumentStatus } from './enums/document-status.enum.js';
+import { PrismaService } from '../prisma/prisma.service.js';
 
 @Injectable()
 export class DocumentsService {
-  private documents: Document[] = [];
-  private extractionResults: ExtractionResult[] = [];
+  constructor(private readonly prismaService: PrismaService) {}
 
-  findByShipmentId(shipmentId: string): Document[] {
-    return this.documents.filter((document) => document.shipmentId === shipmentId);
+  findByShipmentId(shipmentId: string): Promise<Document[]> {
+    return this.prismaService.document.findMany({
+      where: {
+        shipmentId: shipmentId,
+      },
+    });
   }
 
-  create(shipmentId: string, createDocumentDto: CreateDocumentDto): Document {
-    const document: Document = {
-      id: randomUUID(),
-      shipmentId,
-      ...createDocumentDto,
-      status: DocumentStatus.UPLOADED,
-    };
-
-    this.documents.push(document);
-
-    return document;
+  create(
+    shipmentId: string,
+    createDocumentDto: CreateDocumentDto,
+  ): Promise<Document> {
+    return this.prismaService.document.create({
+      data: {
+        type: createDocumentDto.type,
+        originalFilename: createDocumentDto.filename,
+        status: DocumentStatus.UPLOADED,
+        shipment: {
+          connect: {
+            id: shipmentId,
+          },
+        },
+      },
+    });
   }
 
-  process(shipmentId: string, documentId: string): Document {
-    console.log('BAHURKA');
-    const document = this.documents.find(
-        (document) =>
-        document.id === documentId &&
-        document.shipmentId === shipmentId,
-    );  
+  async process(shipmentId: string, documentId: string) {
+    const document = await this.prismaService.document.findFirst({
+      where: {
+        id: documentId,
+        shipmentId: shipmentId,
+      },
+    });
+
     if (!document) {
         throw new NotFoundException(`Document ${documentId} not found`);
     }  
-    document.status = DocumentStatus.EXTRACTING;  
-    // temporary mock extraction
-    document.status = DocumentStatus.EXTRACTED;
 
-    const extractionResult: ExtractionResult = {
-      documentId: document.id,
-      invoiceNumber: 'INV-2026-001',
-      supplierName: 'Acme Ltd',
-      consigneeName: 'DHL Logistics',
-      totalAmount: 12500,
-      currency: 'EUR',
+    await this.prismaService.document.update({
+      where: {
+        id: document.id,
+      },
+      data: {
+        status: DocumentStatus.EXTRACTING,
+      },
+    });
+
+    const extractionResult = await this.prismaService.extractionResult.create({
+      data: {
+        documentId: document.id,
+        status: $Enums.ExtractionStatus.COMPLETED,
+        promptVersion: null,
+        structuredData: null,
+        rawOutput: null,
+        extractedFields: {
+          create: [],
+        },
+      },
+      include: {
+        extractedFields: true,
+      },
+    });
+
+    const updatedDocument = await this.prismaService.document.update({
+      where: {
+        id: document.id,
+      },
+      data: {
+        status: DocumentStatus.EXTRACTED,
+      },
+    });
+    
+    return {
+      document: updatedDocument,
+      extractionResult,
     };
-  
-    this.extractionResults.push(extractionResult);
-  
-    return document;
   }
 
-  getExtractionResult(documentId: string): ExtractionResult | undefined {
-    console.log('BAHURKA');
-    return this.extractionResults.find(
-        result => result.documentId === documentId,
-    );
+
+  
+
+  async getExtractionResult(documentId: string): Promise<ExtractionResult | null> {
+    return this.prismaService.extractionResult.findFirst({
+      where: {
+        documentId: documentId,
+      },
+    });
   }
 }
