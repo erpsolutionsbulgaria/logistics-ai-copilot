@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { $Enums, type Document, type ExtractionResult } from '../../generated/prisma/client.js';
 import { CreateDocumentDto } from './dto/create-document.dto.js';
-import { DocumentStatus } from './enums/document-status.enum.js';
+import { DocumentStatus } from '../../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 @Injectable()
@@ -60,8 +60,8 @@ export class DocumentsService {
         documentId: document.id,
         status: $Enums.ExtractionStatus.COMPLETED,
         promptVersion: null,
-        structuredData: null,
-        rawOutput: null,
+        structuredData: {},
+        rawOutput: {},
         extractedFields: {
           create: [],
         },
@@ -89,10 +89,13 @@ export class DocumentsService {
 
   
 
-  async getExtractionResult(documentId: string): Promise<ExtractionResult | null> {
+  async getExtractionResult(shipmentId: string, documentId: string): Promise<ExtractionResult | null> {
     return this.prismaService.extractionResult.findFirst({
       where: {
         documentId: documentId,
+        document: {
+          shipmentId: shipmentId,
+        },
       },
     });
   }

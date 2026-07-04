@@ -1,5 +1,5 @@
 import { IsEnum, IsString } from 'class-validator';
-import { DocumentType } from '../enums/document-type.enum.js';
+import { DocumentType } from '../../../generated/prisma/client.js';
 
 export class CreateDocumentDto {
   @IsEnum(DocumentType)

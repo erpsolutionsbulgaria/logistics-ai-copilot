@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import type { Issue } from '../../generated/prisma/client.js';
 import { CreateShipmentDto } from './dto/create-shipment.dto.js';
-import { ShipmentStatus } from './enums/shipment-status.enum.js';
+import { ShipmentStatus } from '../../generated/prisma/client.js';
 import { DocumentsService } from '../documents/documents.service.js';
 import { IssuesService } from '../issues/issues.service.js';
-import { IssueSeverity } from '../issues/enums/issue-severity.entity.js';
+import { IssueSeverity } from '../../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 @Injectable()
@@ -85,7 +85,7 @@ export class ShipmentsService {
     }
   
     for (const document of extractedDocuments) {
-      const extractionResult = await this.documentsService.getExtractionResult(document.id);
+      const extractionResult = await this.documentsService.getExtractionResult(shipmentId, document.id);
       const structuredData =
         (extractionResult?.structuredData as Record<string, unknown> | null) ?? {};
 

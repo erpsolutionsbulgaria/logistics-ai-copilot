@@ -30,7 +30,8 @@ export class DocumentsController {
   @Get(':documentId/extraction')
   getExtractionResult(
     @Param('documentId') documentId: string,
+    @Param('shipmentId') shipmentId: string,
   ) {
-    return this.documentsService.getExtractionResult(documentId);
+    return this.documentsService.getExtractionResult(shipmentId, documentId);
   }
 }
