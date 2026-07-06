@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import type { Issue } from '../../generated/prisma/client.js';
+import type { Issue, Shipment } from '../../generated/prisma/client.js';
 import { CreateShipmentDto } from './dto/create-shipment.dto.js';
 import { ShipmentStatus } from '../../generated/prisma/client.js';
 import { DocumentsService } from '../documents/documents.service.js';
@@ -16,7 +16,7 @@ export class ShipmentsService {
     private readonly prismaService: PrismaService,
   ) {}
 
-  async findAll() {
+  async findAll(): Promise<Shipment[]> {
     return this.prismaService.shipment.findMany({
       orderBy: {
         createdAt: 'desc',
@@ -24,7 +24,7 @@ export class ShipmentsService {
     });
   }
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<Shipment> {
     const shipment = await this.prismaService.shipment.findUnique({
       where: { id },
     });
@@ -38,7 +38,7 @@ export class ShipmentsService {
     return shipment;
   }
 
-  async create(createShipmentDto: CreateShipmentDto) {
+  async create(createShipmentDto: CreateShipmentDto): Promise<Shipment> {
     return this.prismaService.shipment.create({
       data: {
         reference: createShipmentDto.reference,
