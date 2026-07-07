@@ -1,8 +1,9 @@
 import { Prisma } from "generated/prisma/browser";
 import { ExtractedFieldDto } from "./extracted-field.dto";
+import { InvoiceExtractionData } from "../schemas/invoice-extraction.schema";
 
 export interface ExtractionResultDto {
-  structuredData: Prisma.InputJsonValue;
+  structuredData: InvoiceExtractionData;
   extractedFields: ExtractedFieldDto[];
   model: string;
   promptVersion: string;

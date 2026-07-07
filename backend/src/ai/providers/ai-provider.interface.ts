@@ -1,6 +1,6 @@
-import { ExtractionRequestDto } from '../dto/extraction-request.dto.js';
-import { ExtractionResultDto } from '../dto/extraction-result.dto.js';
+import { Prompt } from '../prompt/prompt.interface.js';
+import { InvoiceExtractionData } from '../schemas/invoice-extraction.schema.js';
 
 export interface AiProvider {
-  extractStructuredData(request: ExtractionRequestDto): Promise<ExtractionResultDto>;
+  extractStructuredData(prompt: Prompt): Promise<InvoiceExtractionData>;
 }

@@ -1,19 +1,60 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { ExtractionResultDto } from './dto/extraction-result.dto';
+import { ExtractionRequestDto } from './dto/extraction-request.dto.js';
+import { ExtractionResultDto } from './dto/extraction-result.dto.js';
 import * as aiProviderInterface from './providers/ai-provider.interface.js';
 import { AI_PROVIDER } from './providers/ai-provider.token.js';
-import { ExtractionRequestDto } from './dto/extraction-request.dto';
+import { PromptBuilderService } from '../../src/ai/prompt/prompt-builder.service.js';
 
 @Injectable()
 export class AiService {
   constructor(
     @Inject(AI_PROVIDER)
     private readonly aiProvider: aiProviderInterface.AiProvider,
+    private readonly promptBuilder: PromptBuilderService,
   ) {}
 
   async extractStructuredData(
     request: ExtractionRequestDto,
   ): Promise<ExtractionResultDto> {
-    return this.aiProvider.extractStructuredData(request);
+    const prompt =
+      this.promptBuilder.buildExtractionPrompt(request);
+
+    const structuredData =
+      await this.aiProvider.extractStructuredData(prompt);
+
+    return {
+      structuredData,
+      extractedFields: [
+        {
+          fieldName: 'invoiceNumber',
+          value: structuredData.invoiceNumber ?? '',
+          confidence: 0.9,
+        },
+        {
+          fieldName: 'supplierName',
+          value: structuredData.supplierName ?? '',
+          confidence: 0.9,
+        },
+        {
+          fieldName: 'totalAmount',
+          value: structuredData.totalAmount?.toString() ?? '',
+          confidence: 0.9,
+        },
+        {
+          fieldName: 'currency',
+          value: structuredData.currency ?? '',
+          confidence: 0.9,
+        },
+      ],
+      model: process.env.OPENAI_MODEL ?? 'mock-model',
+      promptVersion: 'v1',
+      rawOutput: {
+        source: 'mock-provider',
+        prompt: {
+          system: prompt.system,
+          user: prompt.user,
+        },
+      },
+    };
   }
 }

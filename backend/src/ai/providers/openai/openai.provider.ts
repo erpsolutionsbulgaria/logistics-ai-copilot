@@ -1,49 +1,46 @@
 import { Injectable } from '@nestjs/common';
+import OpenAI from 'openai';
+import { zodTextFormat } from 'openai/helpers/zod';
 import { AiProvider } from '../ai-provider.interface.js';
-import { ExtractionResultDto } from '../../dto/extraction-result.dto.js';
-import { ExtractionRequestDto } from 'src/ai/dto/extraction-request.dto.js';
+import { Prompt } from '../../../ai/prompt/prompt.interface.js';
+import {
+  InvoiceExtractionData,
+  InvoiceExtractionSchema,
+} from '../../schemas/invoice-extraction.schema.js';
 
 @Injectable()
 export class OpenAiProvider implements AiProvider {
+  private readonly client: OpenAI;
+
+  constructor() {
+    this.client = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+
   async extractStructuredData(
-    request: ExtractionRequestDto,
-  ): Promise<ExtractionResultDto> {
-    return {
-      structuredData: {
-        invoiceNumber: 'INV-2026-001',
-        supplierName: 'Acme Ltd',
-        consigneeName: 'DHL Logistics',
-        totalAmount: 12500,
-        currency: 'EUR',
-      },
-      extractedFields: [
+    prompt: Prompt,
+  ): Promise<InvoiceExtractionData> {
+    const response = await this.client.responses.parse({
+      model: process.env.OPENAI_MODEL ?? 'gpt-5.5',
+      input: [
         {
-          fieldName: 'invoiceNumber',
-          value: 'INV-2026-001',
-          confidence: 0.98,
+          role: 'system',
+          content: prompt.system,
         },
         {
-          fieldName: 'supplierName',
-          value: 'Acme Ltd',
-          confidence: 0.95,
-        },
-        {
-          fieldName: 'totalAmount',
-          value: '12500',
-          confidence: 0.9,
-        },
-        {
-          fieldName: 'currency',
-          value: 'EUR',
-          confidence: 0.97,
+          role: 'user',
+          content: prompt.user,
         },
       ],
-      model: process.env.OPENAI_MODEL ?? 'mock-model',
-      promptVersion: 'v1',
-      rawOutput: {
-        source: 'mock-openai-provider',
-        inputText: request.text,
+      text: {
+        format: zodTextFormat(
+          InvoiceExtractionSchema as any,
+          'invoice_extraction',
+        ),
       },
-    };
+    });
+
+    return response.output_parsed;
   }
 }
