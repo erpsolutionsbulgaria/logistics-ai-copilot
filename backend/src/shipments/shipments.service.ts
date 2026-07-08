@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import type { Issue, Shipment } from '../../generated/prisma/client.js';
+import type { Issue, Shipment } from '@prisma/client';
 import { CreateShipmentDto } from './dto/create-shipment.dto.js';
-import { ShipmentStatus } from '../../generated/prisma/client.js';
+import { ShipmentStatus } from '@prisma/client';
 import { DocumentsService } from '../documents/documents.service.js';
 import { IssuesService } from '../issues/issues.service.js';
-import { IssueSeverity } from '../../generated/prisma/client.js';
+import { IssueSeverity } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 @Injectable()

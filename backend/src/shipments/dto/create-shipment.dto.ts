@@ -1,5 +1,5 @@
 import { IsEnum, IsOptional, IsString } from 'class-validator';
-import { ShipmentStatus } from '../../../generated/prisma/client.js';
+import { ShipmentStatus } from '@prisma/client';
 
 export class CreateShipmentDto {
   // @IsString()

@@ -1,4 +1,4 @@
-import { DocumentType } from '../../../generated/prisma/client.js';
+import { DocumentType } from '@prisma/client';
 
 export interface ExtractionRequestDto {
   text: string;

@@ -1,4 +1,4 @@
-import { Prisma } from "generated/prisma/browser";
+import { Prisma } from "@prisma/client";
 import { ExtractedFieldDto } from "./extracted-field.dto";
 import { InvoiceExtractionData } from "../schemas/invoice-extraction.schema";
 

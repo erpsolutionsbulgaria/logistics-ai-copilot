@@ -1,6 +1,5 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -70,6 +69,7 @@ model Document {
   id               String         @id @default(uuid())
   shipmentId       String
   type             DocumentType
+  storagePath      String?
   originalFilename String
   status           DocumentStatus @default(UPLOADED)
 

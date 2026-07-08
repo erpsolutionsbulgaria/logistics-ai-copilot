@@ -1,4 +1,4 @@
-import { ExtractedFieldStatus } from "generated/prisma/client";
+import { ExtractedFieldStatus } from "@prisma/client";
 
 export interface ExtractedFieldDto {
   fieldName: string;

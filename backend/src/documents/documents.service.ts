@@ -1,16 +1,18 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { $Enums, ExtractedFieldStatus, type Document, type ExtractionResult } from '../../generated/prisma/client.js';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { $Enums, ExtractedFieldStatus, type Document, type ExtractionResult } from '@prisma/client';
 import { CreateDocumentDto } from './dto/create-document.dto.js';
-import { DocumentStatus } from '../../generated/prisma/client.js';
+import { DocumentStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { AiService } from '../ai/ai.service.js';
-import { ExtractionRequestDto } from 'src/ai/dto/extraction-request.dto.js';
+import { ExtractionRequestDto } from '../../src/ai/dto/extraction-request.dto.js';
+import { OcrService } from '../../src/ocr/ocr.service.js';
 
 @Injectable()
 export class DocumentsService {
   constructor(
     private readonly prismaService: PrismaService,
-    private readonly aiService: AiService
+    private readonly aiService: AiService,
+    private readonly ocrService: OcrService
   ) {}
 
   findByShipmentId(shipmentId: string): Promise<Document[]> {
@@ -29,6 +31,7 @@ export class DocumentsService {
       data: {
         type: createDocumentDto.type,
         originalFilename: createDocumentDto.filename,
+        storagePath: createDocumentDto.storagePath,
         status: DocumentStatus.UPLOADED,
         shipment: {
           connect: {
@@ -39,7 +42,10 @@ export class DocumentsService {
     });
   }
 
-  async process(shipmentId: string, documentId: string) {
+  async process(
+    shipmentId: string,
+    documentId: string,
+  ) {
     const document = await this.prismaService.document.findFirst({
       where: {
         id: documentId,
@@ -60,13 +66,13 @@ export class DocumentsService {
       },
     });
 
-    const documentText = `
-      Invoice No: INV-2026-001
-      Supplier: Acme Ltd
-      Consignee: DHL Logistics
-      Currency: EUR
-      Total: 12500
-      `;
+    if (!document.storagePath) {
+      throw new BadRequestException(
+        `Document ${document.id} does not have a storage path`,
+      );
+    }
+
+    const documentText = await this.ocrService.extractTextFromDocument(document.storagePath);
 
     const extractionRequest: ExtractionRequestDto = {
       text: documentText,

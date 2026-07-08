@@ -1,5 +1,5 @@
 import { IsEnum, IsString } from 'class-validator';
-import { DocumentType } from '../../../generated/prisma/client.js';
+import { DocumentType } from '@prisma/client';
 
 export class CreateDocumentDto {
   @IsEnum(DocumentType)
@@ -7,4 +7,7 @@ export class CreateDocumentDto {
 
   @IsString()
   filename!: string;
+
+  @IsString()
+  storagePath?: string;
 }

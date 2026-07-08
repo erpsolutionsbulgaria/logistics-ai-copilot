@@ -1,4 +1,4 @@
-import { ExtractedFieldStatus } from '../../../generated/prisma/client.js';
+import { ExtractedFieldStatus } from '@prisma/client';
 import { ExtractedFieldDto } from '../dto/extracted-field.dto.js';
 import { InvoiceExtractionData } from '../schemas/invoice-extraction.schema.js';
 import { InvoiceFieldConfig } from '../schemas/invoice-field.config.js';

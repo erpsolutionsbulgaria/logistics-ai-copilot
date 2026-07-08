@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import type { Issue } from '../../generated/prisma/client.js';
-import { IssueSeverity } from '../../generated/prisma/client.js';
+import type { Issue } from '@prisma/client';
+import { IssueSeverity } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 @Injectable()
