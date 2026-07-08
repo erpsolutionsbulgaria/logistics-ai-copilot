@@ -4,6 +4,7 @@ import { ExtractionResultDto } from './dto/extraction-result.dto.js';
 import * as aiProviderInterface from './providers/ai-provider.interface.js';
 import { AI_PROVIDER } from './providers/ai-provider.token.js';
 import { PromptBuilderService } from '../../src/ai/prompt/prompt-builder.service.js';
+import { mapInvoiceDataToExtractedFields } from './mappers/extracted-field.mapper.js';
 
 @Injectable()
 export class AiService {
@@ -24,28 +25,7 @@ export class AiService {
 
     return {
       structuredData,
-      extractedFields: [
-        {
-          fieldName: 'invoiceNumber',
-          value: structuredData.invoiceNumber ?? '',
-          confidence: 0.9,
-        },
-        {
-          fieldName: 'supplierName',
-          value: structuredData.supplierName ?? '',
-          confidence: 0.9,
-        },
-        {
-          fieldName: 'totalAmount',
-          value: structuredData.totalAmount?.toString() ?? '',
-          confidence: 0.9,
-        },
-        {
-          fieldName: 'currency',
-          value: structuredData.currency ?? '',
-          confidence: 0.9,
-        },
-      ],
+      extractedFields: mapInvoiceDataToExtractedFields(structuredData),
       model: process.env.OPENAI_MODEL ?? 'mock-model',
       promptVersion: 'v1',
       rawOutput: {

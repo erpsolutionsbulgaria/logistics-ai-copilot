@@ -87,7 +87,7 @@ export class DocumentsService {
             fieldName: field.fieldName,
             value: field.value,
             confidence: field.confidence,
-            status: ExtractedFieldStatus.AUTO_ACCEPTED,
+            status: field.status,
           })),
         },
       },
