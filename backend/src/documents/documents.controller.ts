@@ -1,6 +1,16 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Param,
+  Body,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { CreateDocumentDto } from './dto/create-document.dto.js';
 import { DocumentsService } from './documents.service.js';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
 
 @Controller('shipments/:shipmentId/documents')
 export class DocumentsController {
@@ -11,13 +21,13 @@ export class DocumentsController {
     return this.documentsService.findByShipmentId(shipmentId);
   }
 
-  @Post()
-  create(
-    @Param('shipmentId') shipmentId: string,
-    @Body() createDocumentDto: CreateDocumentDto,
-  ) {
-    return this.documentsService.create(shipmentId, createDocumentDto);
-  }
+  // @Post()
+  // create(
+  //   @Param('shipmentId') shipmentId: string,
+  //   @Body() createDocumentDto: CreateDocumentDto,
+  // ) {
+  //   return this.documentsService.create(shipmentId, createDocumentDto);
+  // }
 
   @Post(':documentId/process')
   process(
@@ -33,5 +43,32 @@ export class DocumentsController {
     @Param('shipmentId') shipmentId: string,
   ) {
     return this.documentsService.getExtractionResult(shipmentId, documentId);
+  }
+
+  @Post('upload')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: 'uploads',
+        filename: (req, file, callback) => {
+          const uniqueName = `${Date.now()}-${file.originalname}`;
+          callback(null, uniqueName);
+        },
+      }),
+    }),
+  )
+  uploadDocument(
+    @Param('shipmentId') shipmentId: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Body('type') type: string,
+  ) {
+    console.log('Document type:', type);
+    console.log('FFile:', file);
+    console.log('shipmentId:', shipmentId);
+    return this.documentsService.create(shipmentId, {
+      type: type as any,
+      filename: file.originalname,
+      storagePath: file.path,
+    });
   }
 }
