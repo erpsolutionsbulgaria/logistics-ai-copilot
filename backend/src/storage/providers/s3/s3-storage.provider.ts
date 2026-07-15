@@ -130,35 +130,35 @@ export class S3StorageProvider implements StorageProvider {
     }
   }
 
-  // async createReadUrl(
-  //   key: string,
-  //   expiresInSeconds = 300,
-  // ): Promise<string> {
-  //   if (
-  //     expiresInSeconds <= 0 ||
-  //     expiresInSeconds > 3600
-  //   ) {
-  //     throw new InternalServerErrorException(
-  //       'Invalid presigned URL expiration',
-  //     );
-  //   }
+  async createReadUrl(
+    key: string,
+    expiresInSeconds = 300,
+  ): Promise<string> {
+    if (
+      expiresInSeconds <= 0 ||
+      expiresInSeconds > 3600
+    ) {
+      throw new InternalServerErrorException(
+        'Invalid presigned URL expiration',
+      );
+    }
 
-  //   try {
-  //     return await getSignedUrl(
-  //       this.client,
-  //       new GetObjectCommand({
-  //         Bucket: this.bucket,
-  //         Key: key,
-  //       }),
-  //       {
-  //         expiresIn: expiresInSeconds,
-  //       },
-  //     );
-  //   } catch (error) {
-  //     throw new BadGatewayException(
-  //       `A temporary URL for ${key} could not be generated`,
-  //       { cause: error },
-  //     );
-  //   }
-  // }
+    try {
+      return await getSignedUrl(
+        this.client,
+        new GetObjectCommand({
+          Bucket: this.bucket,
+          Key: key,
+        }),
+        {
+          expiresIn: expiresInSeconds,
+        },
+      );
+    } catch (error) {
+      throw new BadGatewayException(
+        `A temporary URL for ${key} could not be generated`,
+        { cause: error },
+      );
+    }
+  }
 }

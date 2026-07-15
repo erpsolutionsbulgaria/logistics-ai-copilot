@@ -25,7 +25,7 @@ export class StorageService {
     return this.storageProvider.deleteFile(key);
   }
 
-  // createReadUrl(key: string, expiresInSeconds?: number): Promise<string> {
-  //   return this.storageProvider.createReadUrl(key, expiresInSeconds);
-  // }
+  createReadUrl(key: string, expiresInSeconds?: number): Promise<string> {
+    return this.storageProvider.createReadUrl(key, expiresInSeconds);
+  }
 }

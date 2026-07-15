@@ -49,6 +49,8 @@ export class DocumentsService {
     shipmentId: string,
     documentId: string,
   ) {
+
+    //TODO: could be refactored
     const document = await this.prismaService.document.findFirst({
       where: {
         id: documentId,
