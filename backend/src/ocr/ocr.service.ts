@@ -1,16 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { OCR_PROVIDER } from '../ocr/providers/ocr-provider.token.js';
+import * as ocrProviderInterface from './providers/ocr-provider.interface.js';
 
 @Injectable()
 export class OcrService {
-  extractTextFromDocument(storagePath: string): Promise<string> {
-    return Promise.resolve(`
-        Invoice No: INV-2026-777
-        Supplier: Real Supplier Ltd
-        Consignee: DHL Logistics
-        Currency: EUR
-        Total: 9876
+  constructor(
+    @Inject(OCR_PROVIDER)
+    private readonly provider: ocrProviderInterface.OcrProvider,
+  ) {}
 
-        Source file: ${storagePath}
-    `);
+  extractText(storagePath: string): Promise<string> {
+    return this.provider.extractText(storagePath);
   }
 }

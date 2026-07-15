@@ -6,28 +6,99 @@ import {
   Body,
   UploadedFile,
   UseInterceptors,
+  BadRequestException,
 } from '@nestjs/common';
 import { CreateDocumentDto } from './dto/create-document.dto.js';
 import { DocumentsService } from './documents.service.js';
+import { StorageService } from '../storage/storage.service.js';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { DocumentType } from '@prisma/client';
 import { diskStorage } from 'multer';
 
 @Controller('shipments/:shipmentId/documents')
 export class DocumentsController {
-  constructor(private readonly documentsService: DocumentsService) {}
+  constructor(
+    private readonly documentsService: DocumentsService,
+    private readonly storageService: StorageService,
+  ) {}
 
   @Get()
   findByShipment(@Param('shipmentId') shipmentId: string) {
     return this.documentsService.findByShipmentId(shipmentId);
   }
 
-  // @Post()
-  // create(
-  //   @Param('shipmentId') shipmentId: string,
-  //   @Body() createDocumentDto: CreateDocumentDto,
-  // ) {
-  //   return this.documentsService.create(shipmentId, createDocumentDto);
-  // }
+@Post()
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: {
+        fileSize: 25 * 1024 * 1024,
+      },
+      fileFilter: (_request, file, callback) => {
+        const allowedMimeTypes = new Set([
+          'application/pdf',
+          'image/png',
+          'image/jpeg',
+          'image/tiff',
+          'text/plain',
+        ]);
+
+        if (!allowedMimeTypes.has(file.mimetype)) {
+          callback(
+            new BadRequestException(
+              `Unsupported file type: ${file.mimetype}`,
+            ),
+            false,
+          );
+          return;
+        }
+
+        callback(null, true);
+      },
+    }),
+  )
+  async uploadDocument(
+    @Param('shipmentId') shipmentId: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Body('type') type: DocumentType,
+  ) {
+    if (!file) {
+      throw new BadRequestException(
+        'A document file is required',
+      );
+    }
+
+    if (!Object.values(DocumentType).includes(type)) {
+      throw new BadRequestException(
+        `Invalid document type: ${type}`,
+      );
+    }
+
+    const storedFile =
+      await this.storageService.saveFile({
+        buffer: file.buffer,
+        originalFilename: file.originalname,
+        mimeType: file.mimetype,
+        size: file.size,
+        shipmentId,
+      });
+
+    try {
+      return await this.documentsService.create(
+        shipmentId,
+        {
+          type,
+          filename: storedFile.originalFilename,
+          storagePath: storedFile.key,
+        },
+      );
+    } catch (error) {
+      await this.storageService
+        .deleteFile(storedFile.key)
+        .catch(() => undefined);
+
+      throw error;
+    }
+  }
 
   @Post(':documentId/process')
   process(
@@ -43,32 +114,5 @@ export class DocumentsController {
     @Param('shipmentId') shipmentId: string,
   ) {
     return this.documentsService.getExtractionResult(shipmentId, documentId);
-  }
-
-  @Post('upload')
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: diskStorage({
-        destination: 'uploads',
-        filename: (req, file, callback) => {
-          const uniqueName = `${Date.now()}-${file.originalname}`;
-          callback(null, uniqueName);
-        },
-      }),
-    }),
-  )
-  uploadDocument(
-    @Param('shipmentId') shipmentId: string,
-    @UploadedFile() file: Express.Multer.File,
-    @Body('type') type: string,
-  ) {
-    console.log('Document type:', type);
-    console.log('FFile:', file);
-    console.log('shipmentId:', shipmentId);
-    return this.documentsService.create(shipmentId, {
-      type: type as any,
-      filename: file.originalname,
-      storagePath: file.path,
-    });
   }
 }

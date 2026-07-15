@@ -7,10 +7,12 @@ import { IssuesModule } from './issues/issues.module.js';
 import { TasksModule } from './tasks/tasks.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { AiModule } from './ai/ai.module.js';
-import { OcrModule } from '../src/ocr/ocr.module.js';
+import { OcrModule } from './ocr/ocr.module.js';
+// import { StorageService } from './storage/storage.service.js';
+import { StorageModule } from './storage/storage.module.js';
 
 @Module({
-  imports: [ShipmentsModule, DocumentsModule, IssuesModule, TasksModule, PrismaModule, AiModule, OcrModule],
+  imports: [ShipmentsModule, DocumentsModule, IssuesModule, TasksModule, PrismaModule, AiModule, OcrModule, StorageModule],
   controllers: [AppController],
   providers: [AppService],
 })

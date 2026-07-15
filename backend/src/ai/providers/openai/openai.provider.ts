@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import OpenAI from 'openai';
 import { zodTextFormat } from 'openai/helpers/zod';
 import { AiProvider } from '../ai-provider.interface.js';
@@ -35,11 +35,17 @@ export class OpenAiProvider implements AiProvider {
       ],
       text: {
         format: zodTextFormat(
-          InvoiceExtractionSchema as any,
+          InvoiceExtractionSchema,
           'invoice_extraction',
         ),
       },
     });
+
+    if (!response.output_parsed) {
+      throw new InternalServerErrorException(
+        'OpenAI did not return structured extraction data',
+      );
+  }
 
     return response.output_parsed;
   }

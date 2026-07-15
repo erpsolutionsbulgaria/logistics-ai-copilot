@@ -29,7 +29,7 @@ export class AiService {
       model: process.env.OPENAI_MODEL ?? 'mock-model',
       promptVersion: 'v1',
       rawOutput: {
-        source: 'mock-provider',
+        source: 'openai',
         prompt: {
           system: prompt.system,
           user: prompt.user,

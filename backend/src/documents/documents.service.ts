@@ -6,13 +6,15 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { AiService } from '../ai/ai.service.js';
 import { ExtractionRequestDto } from '../../src/ai/dto/extraction-request.dto.js';
 import { OcrService } from '../../src/ocr/ocr.service.js';
+// import { StorageService } from '../../src/storage/storage.service.js';
 
 @Injectable()
 export class DocumentsService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly aiService: AiService,
-    private readonly ocrService: OcrService
+    private readonly ocrService: OcrService,
+    // private readonly storageService: StorageService
   ) {}
 
   findByShipmentId(shipmentId: string): Promise<Document[]> {
@@ -23,10 +25,11 @@ export class DocumentsService {
     });
   }
 
-  create(
+  async create(
     shipmentId: string,
-    createDocumentDto: CreateDocumentDto,
+    createDocumentDto: CreateDocumentDto
   ): Promise<Document> {
+
     return this.prismaService.document.create({
       data: {
         type: createDocumentDto.type,
@@ -72,7 +75,7 @@ export class DocumentsService {
       );
     }
 
-    const documentText = await this.ocrService.extractTextFromDocument(document.storagePath);
+    const documentText = await this.ocrService.extractText(document.storagePath);
 
     const extractionRequest: ExtractionRequestDto = {
       text: documentText,
@@ -127,4 +130,15 @@ export class DocumentsService {
       },
     });
   }
+
+  // async getExtractionResult(shipmentId: string, documentId: string): Promise<ExtractionResult | null> {
+  //   return this.prismaService.extractionResult.findFirst({
+  //     where: {
+  //       documentId: documentId,
+  //       document: {
+  //         shipmentId: shipmentId,
+  //       },
+  //     },
+  //   });
+  // }
 }
