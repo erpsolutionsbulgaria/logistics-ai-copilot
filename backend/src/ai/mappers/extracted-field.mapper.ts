@@ -7,7 +7,8 @@ export function mapInvoiceDataToExtractedFields(
   data: InvoiceExtractionData,
 ): ExtractedFieldDto[] {
   return Object.entries(data).map(([fieldName, value]) => {
-    const config = InvoiceFieldConfig[fieldName as keyof typeof InvoiceFieldConfig];
+    const config =
+      InvoiceFieldConfig[fieldName as keyof typeof InvoiceFieldConfig];
 
     const confidence = 0.9;
 

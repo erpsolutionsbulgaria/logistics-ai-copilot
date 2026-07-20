@@ -22,9 +22,7 @@ export class ShipmentsController {
   }
 
   @Post(':shipmentId/validate')
-  validate(
-    @Param('shipmentId') shipmentId: string,
-  ) {
-     return this.shipmentsService.validate(shipmentId);
+  validate(@Param('shipmentId') shipmentId: string) {
+    return this.shipmentsService.validate(shipmentId);
   }
 }

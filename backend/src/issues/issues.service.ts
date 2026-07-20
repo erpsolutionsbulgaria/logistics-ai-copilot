@@ -13,7 +13,6 @@ export class IssuesService {
     title: string,
     description: string,
   ): Promise<Issue> {
-
     return this.prismaService.issue.create({
       data: {
         shipmentId,

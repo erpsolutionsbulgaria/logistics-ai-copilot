@@ -6,12 +6,10 @@ import { StoredFileDto } from './dto/stored-file.dto.js';
 
 @Injectable()
 export class StorageService {
-
   constructor(
     @Inject(STORAGE_PROVIDER)
     private readonly storageProvider: storageProviderInterface.StorageProvider,
-  ){
-  }
+  ) {}
 
   async saveFile(upload: StorageUploadDto): Promise<StoredFileDto> {
     return this.storageProvider.saveFile(upload);

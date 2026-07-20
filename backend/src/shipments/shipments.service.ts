@@ -9,7 +9,6 @@ import { PrismaService } from '../prisma/prisma.service.js';
 
 @Injectable()
 export class ShipmentsService {
-
   constructor(
     private readonly documentsService: DocumentsService,
     private readonly issuesService: IssuesService,
@@ -30,9 +29,7 @@ export class ShipmentsService {
     });
 
     if (!shipment) {
-      throw new NotFoundException(
-        `Shipment ${id} not found`,
-      );
+      throw new NotFoundException(`Shipment ${id} not found`);
     }
 
     return shipment;
@@ -50,12 +47,11 @@ export class ShipmentsService {
 
   async validate(shipmentId: string) {
     const shipment = await this.findOne(shipmentId);
-  
-    const documents =
-      await this.documentsService.findByShipmentId(shipmentId);
-  
+
+    const documents = await this.documentsService.findByShipmentId(shipmentId);
+
     const createdIssues: Promise<Issue>[] = [];
-  
+
     if (documents.length === 0) {
       createdIssues.push(
         this.issuesService.create(
@@ -66,13 +62,12 @@ export class ShipmentsService {
         ),
       );
     }
-  
+
     const extractedDocuments = documents.filter(
       (document) =>
-        document.status === 'EXTRACTED' ||
-        document.status === 'APPROVED',
+        document.status === 'EXTRACTED' || document.status === 'APPROVED',
     );
-  
+
     if (documents.length > 0) {
       createdIssues.push(
         this.issuesService.create(
@@ -83,11 +78,15 @@ export class ShipmentsService {
         ),
       );
     }
-  
+
     for (const document of extractedDocuments) {
-      const extractionResult = await this.documentsService.getExtractionResult(shipmentId, document.id);
+      const extractionResult = await this.documentsService.getExtractionResult(
+        shipmentId,
+        document.id,
+      );
       const structuredData =
-        (extractionResult?.structuredData as Record<string, unknown> | null) ?? {};
+        (extractionResult?.structuredData as Record<string, unknown> | null) ??
+        {};
 
       if (!extractionResult) {
         createdIssues.push(
@@ -149,5 +148,4 @@ export class ShipmentsService {
       issues,
     };
   }
-
 }

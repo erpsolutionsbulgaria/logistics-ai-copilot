@@ -27,7 +27,7 @@ export class DocumentsController {
     return this.documentsService.findByShipmentId(shipmentId);
   }
 
-@Post()
+  @Post()
   @UseInterceptors(
     FileInterceptor('file', {
       limits: {
@@ -44,9 +44,7 @@ export class DocumentsController {
 
         if (!allowedMimeTypes.has(file.mimetype)) {
           callback(
-            new BadRequestException(
-              `Unsupported file type: ${file.mimetype}`,
-            ),
+            new BadRequestException(`Unsupported file type: ${file.mimetype}`),
             false,
           );
           return;
@@ -62,35 +60,27 @@ export class DocumentsController {
     @Body('type') type: DocumentType,
   ) {
     if (!file) {
-      throw new BadRequestException(
-        'A document file is required',
-      );
+      throw new BadRequestException('A document file is required');
     }
 
     if (!Object.values(DocumentType).includes(type)) {
-      throw new BadRequestException(
-        `Invalid document type: ${type}`,
-      );
+      throw new BadRequestException(`Invalid document type: ${type}`);
     }
 
-    const storedFile =
-      await this.storageService.saveFile({
-        buffer: file.buffer,
-        originalFilename: file.originalname,
-        mimeType: file.mimetype,
-        size: file.size,
-        shipmentId,
-      });
+    const storedFile = await this.storageService.saveFile({
+      buffer: file.buffer,
+      originalFilename: file.originalname,
+      mimeType: file.mimetype,
+      size: file.size,
+      shipmentId,
+    });
 
     try {
-      return await this.documentsService.create(
-        shipmentId,
-        {
-          type,
-          filename: storedFile.originalFilename,
-          storagePath: storedFile.key,
-        },
-      );
+      return await this.documentsService.create(shipmentId, {
+        type,
+        filename: storedFile.originalFilename,
+        storagePath: storedFile.key,
+      });
     } catch (error) {
       await this.storageService
         .deleteFile(storedFile.key)

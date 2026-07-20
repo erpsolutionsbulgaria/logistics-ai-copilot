@@ -1,5 +1,14 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { $Enums, ExtractedFieldStatus, type Document, type ExtractionResult } from '@prisma/client';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  $Enums,
+  ExtractedFieldStatus,
+  type Document,
+  type ExtractionResult,
+} from '@prisma/client';
 import { CreateDocumentDto } from './dto/create-document.dto.js';
 import { DocumentStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service.js';
@@ -27,9 +36,8 @@ export class DocumentsService {
 
   async create(
     shipmentId: string,
-    createDocumentDto: CreateDocumentDto
+    createDocumentDto: CreateDocumentDto,
   ): Promise<Document> {
-
     return this.prismaService.document.create({
       data: {
         type: createDocumentDto.type,
@@ -45,11 +53,7 @@ export class DocumentsService {
     });
   }
 
-  async process(
-    shipmentId: string,
-    documentId: string,
-  ) {
-
+  async process(shipmentId: string, documentId: string) {
     //TODO: could be refactored
     const document = await this.prismaService.document.findFirst({
       where: {
@@ -59,8 +63,8 @@ export class DocumentsService {
     });
 
     if (!document) {
-        throw new NotFoundException(`Document ${documentId} not found`);
-    }  
+      throw new NotFoundException(`Document ${documentId} not found`);
+    }
 
     await this.prismaService.document.update({
       where: {
@@ -77,14 +81,17 @@ export class DocumentsService {
       );
     }
 
-    const documentText = await this.ocrService.extractText(document.storagePath);
+    const documentText = await this.ocrService.extractText(
+      document.storagePath,
+    );
 
     const extractionRequest: ExtractionRequestDto = {
       text: documentText,
       documentType: document.type,
     };
 
-    const aiExtraction = await this.aiService.extractStructuredData(extractionRequest);
+    const aiExtraction =
+      await this.aiService.extractStructuredData(extractionRequest);
     const extractionResult = await this.prismaService.extractionResult.create({
       data: {
         documentId: document.id,
@@ -115,14 +122,17 @@ export class DocumentsService {
         status: DocumentStatus.EXTRACTED,
       },
     });
-    
+
     return {
       document: updatedDocument,
       extractionResult,
     };
   }
 
-  async getExtractionResult(shipmentId: string, documentId: string): Promise<ExtractionResult | null> {
+  async getExtractionResult(
+    shipmentId: string,
+    documentId: string,
+  ): Promise<ExtractionResult | null> {
     return this.prismaService.extractionResult.findFirst({
       where: {
         documentId: documentId,

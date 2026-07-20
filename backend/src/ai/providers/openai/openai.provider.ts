@@ -18,9 +18,7 @@ export class OpenAiProvider implements AiProvider {
     });
   }
 
-  async extractStructuredData(
-    prompt: Prompt,
-  ): Promise<InvoiceExtractionData> {
+  async extractStructuredData(prompt: Prompt): Promise<InvoiceExtractionData> {
     const response = await this.client.responses.parse({
       model: process.env.OPENAI_MODEL ?? 'gpt-5.5',
       input: [
@@ -34,10 +32,7 @@ export class OpenAiProvider implements AiProvider {
         },
       ],
       text: {
-        format: zodTextFormat(
-          InvoiceExtractionSchema,
-          'invoice_extraction',
-        ),
+        format: zodTextFormat(InvoiceExtractionSchema, 'invoice_extraction'),
       },
     });
 
@@ -45,7 +40,7 @@ export class OpenAiProvider implements AiProvider {
       throw new InternalServerErrorException(
         'OpenAI did not return structured extraction data',
       );
-  }
+    }
 
     return response.output_parsed;
   }

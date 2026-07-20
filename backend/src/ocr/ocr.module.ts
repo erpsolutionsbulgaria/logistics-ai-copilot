@@ -10,8 +10,8 @@ import { StorageModule } from '../../src/storage/storage.module.js';
     MockOcrProvider,
     {
       provide: OCR_PROVIDER,
-      useExisting: MockOcrProvider
-    }
+      useExisting: MockOcrProvider,
+    },
   ],
   exports: [OcrService],
   imports: [StorageModule],

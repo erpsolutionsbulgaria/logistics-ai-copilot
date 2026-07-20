@@ -17,11 +17,9 @@ export class AiService {
   async extractStructuredData(
     request: ExtractionRequestDto,
   ): Promise<ExtractionResultDto> {
-    const prompt =
-      this.promptBuilder.buildExtractionPrompt(request);
+    const prompt = this.promptBuilder.buildExtractionPrompt(request);
 
-    const structuredData =
-      await this.aiProvider.extractStructuredData(prompt);
+    const structuredData = await this.aiProvider.extractStructuredData(prompt);
 
     return {
       structuredData,

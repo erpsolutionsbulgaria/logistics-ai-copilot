@@ -1,6 +1,6 @@
-import { Prisma } from "@prisma/client";
-import { ExtractedFieldDto } from "./extracted-field.dto";
-import { InvoiceExtractionData } from "../schemas/invoice-extraction.schema";
+import { Prisma } from '@prisma/client';
+import { ExtractedFieldDto } from './extracted-field.dto';
+import { InvoiceExtractionData } from '../schemas/invoice-extraction.schema';
 
 export interface ExtractionResultDto {
   structuredData: InvoiceExtractionData;

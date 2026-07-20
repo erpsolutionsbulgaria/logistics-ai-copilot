@@ -1,5 +1,5 @@
-import { readdirSync, readFileSync } from "fs";
-import { StorageProvider } from "../storage-provider.interface";
+import { readdirSync, readFileSync } from 'fs';
+import { StorageProvider } from '../storage-provider.interface';
 import {
   S3Client,
   CreateBucketCommand,
@@ -10,40 +10,40 @@ import {
   DeleteObjectsCommand,
   DeleteBucketCommand,
   DeleteObjectCommand,
-} from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { unlink } from "node:fs/promises";
-import { BadGatewayException, InternalServerErrorException } from "@nestjs/common";
-import { StorageUploadDto } from "src/storage/dto/storage-upload.dto";
-import { StoredFileDto } from "src/storage/dto/stored-file.dto";
-import { randomUUID } from "node:crypto";
-import { extname } from "node:path";
-
+} from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { unlink } from 'node:fs/promises';
+import {
+  BadGatewayException,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import { StorageUploadDto } from 'src/storage/dto/storage-upload.dto';
+import { StoredFileDto } from 'src/storage/dto/stored-file.dto';
+import { randomUUID } from 'node:crypto';
+import { extname } from 'node:path';
 
 export class S3StorageProvider implements StorageProvider {
-
   private readonly client: S3Client;
   private readonly bucket: string;
 
   constructor() {
-      const region = process.env.AWS_REGION;
-      const bucket = process.env.AWS_S3_BUCKET_NAME;
+    const region = process.env.AWS_REGION;
+    const bucket = process.env.AWS_S3_BUCKET_NAME;
 
-      if (!region) {
-        throw new Error('AWS_REGION is not configured');
-      }
-
-      if (!bucket) {
-        throw new Error('AWS_S3_BUCKET_NAME is not configured');
-      }
-
-      this.bucket = bucket;
-      this.client = new S3Client({ region });
+    if (!region) {
+      throw new Error('AWS_REGION is not configured');
     }
 
-  // Implementation for S3 storage provider
-    async saveFile(upload: StorageUploadDto): Promise<StoredFileDto> {
+    if (!bucket) {
+      throw new Error('AWS_S3_BUCKET_NAME is not configured');
+    }
 
+    this.bucket = bucket;
+    this.client = new S3Client({ region });
+  }
+
+  // Implementation for S3 storage provider
+  async saveFile(upload: StorageUploadDto): Promise<StoredFileDto> {
     const extension = extname(upload.originalFilename).toLowerCase();
 
     const key = [
@@ -65,9 +65,7 @@ export class S3StorageProvider implements StorageProvider {
           ServerSideEncryption: 'AES256',
 
           Metadata: {
-            originalFilename: encodeURIComponent(
-              upload.originalFilename,
-            ),
+            originalFilename: encodeURIComponent(upload.originalFilename),
           },
         }),
       );
@@ -79,17 +77,12 @@ export class S3StorageProvider implements StorageProvider {
         size: upload.size,
       };
     } catch (error) {
-      throw new BadGatewayException(
-        'The document could not be stored in S3',
-        {
-          cause: error,
-        },
-      );
+      throw new BadGatewayException('The document could not be stored in S3', {
+        cause: error,
+      });
     }
-
   }
 
-  
   async readFile(key: string): Promise<Buffer> {
     try {
       const response = await this.client.send(
@@ -130,14 +123,8 @@ export class S3StorageProvider implements StorageProvider {
     }
   }
 
-  async createReadUrl(
-    key: string,
-    expiresInSeconds = 300,
-  ): Promise<string> {
-    if (
-      expiresInSeconds <= 0 ||
-      expiresInSeconds > 3600
-    ) {
+  async createReadUrl(key: string, expiresInSeconds = 300): Promise<string> {
+    if (expiresInSeconds <= 0 || expiresInSeconds > 3600) {
       throw new InternalServerErrorException(
         'Invalid presigned URL expiration',
       );

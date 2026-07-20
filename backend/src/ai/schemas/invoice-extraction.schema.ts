@@ -8,6 +8,4 @@ export const InvoiceExtractionSchema = z.object({
   currency: z.string().nullable(),
 });
 
-export type InvoiceExtractionData = z.infer<
-  typeof InvoiceExtractionSchema
->;
+export type InvoiceExtractionData = z.infer<typeof InvoiceExtractionSchema>;

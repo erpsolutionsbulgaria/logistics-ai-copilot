@@ -5,7 +5,6 @@ import { InvoiceFieldConfig } from '../schemas/invoice-field.config.js';
 
 @Injectable()
 export class PromptBuilderService {
-
   private buildFieldInstructions(): string {
     return Object.values(InvoiceFieldConfig)
       .map(
@@ -15,9 +14,7 @@ export class PromptBuilderService {
       .join('\n');
   }
 
-  buildExtractionPrompt(
-    request: ExtractionRequestDto,
-  ): Prompt {
+  buildExtractionPrompt(request: ExtractionRequestDto): Prompt {
     const fieldInstructions = this.buildFieldInstructions();
 
     return {

@@ -12,7 +12,16 @@ import { OcrModule } from './ocr/ocr.module.js';
 import { StorageModule } from './storage/storage.module.js';
 
 @Module({
-  imports: [ShipmentsModule, DocumentsModule, IssuesModule, TasksModule, PrismaModule, AiModule, OcrModule, StorageModule],
+  imports: [
+    ShipmentsModule,
+    DocumentsModule,
+    IssuesModule,
+    TasksModule,
+    PrismaModule,
+    AiModule,
+    OcrModule,
+    StorageModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
