@@ -1,4 +1,4 @@
-import type { Shipment } from "../features/shipments/types/shipment";
+import type { Shipment } from "../types/shipment";
 import ShipmentCard from "./ShipmentCard";
 
 import {

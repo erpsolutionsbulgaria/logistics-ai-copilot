@@ -1,5 +1,5 @@
 import { useShipments } from "@/features/shipments/hooks/use-shipments";
-import ShipmentList from "../components/ShipmentList";
+import ShipmentList from "../features/shipments/components/ShipmentList";
 // import { shipments } from "../data/shipments";
 import { AlertCircle, LoaderCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";

@@ -10,6 +10,6 @@ export function getShipment(
   shipmentId: string,
 ): Promise<Shipment> {
   return apiClient<Shipment>(
-    `/shipments/${shipmentId}`,
+    `/shipments/${encodeURIComponent(shipmentId)}`,
   );
 }

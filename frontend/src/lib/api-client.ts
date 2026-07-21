@@ -4,17 +4,25 @@ if (!API_URL) {
   throw new Error("VITE_API_URL is not configured");
 }
 
-type ApiRequestOptions = RequestInit;
+type ApiClientOptions = Omit<RequestInit, "body"> & {
+  body?: unknown;
+};
+
+// type ApiRequestOptions = RequestInit;
 
 export class ApiError extends Error {
   status: number;
   data: unknown;
 
-  constructor(
+  constructor({
+    message,
+    status,
+    data,
+  }: {
     message: string,
     status: number,
-    data: unknown,
-  ) {
+    data: unknown, 
+  }) {
     super(message);
 
     this.name = "ApiError";
@@ -25,41 +33,60 @@ export class ApiError extends Error {
 
 export async function apiClient<T>(
   path: string,
-  options?: ApiRequestOptions,
+  options: ApiClientOptions = {},
 ): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, {
-    ...options,
+    const { body, headers, ...requestOptions } = options;
+  
+    const response = await fetch(`${API_URL}${path}`, {
+    ...requestOptions,
+
     headers: {
-      "Content-Type": "application/json",
-      ...options?.headers,
-    },
-  });
+        Accept: "application/json",
 
-  if (!response.ok) {
-    const data = await readResponseBody(response);
+        ...(body !== undefined
+        ? {
+            "Content-Type": "application/json",
+          }
+        : {}),
+        
+        ...headers
+        },
+    });
 
-    throw new ApiError(
-      `API request failed with status ${response.status}`,
-      response.status,
-      data,
-    );
-  }
+    const contentType = response.headers.get("content-type");
+  
+    const responseData = contentType?.includes("application/json")
+      ? await response.json()
+      : await response.text();
+  
+    if (!response.ok) {
+    const message =
+      typeof responseData === "object" &&
+      responseData !== null &&
+      "message" in responseData
+        ? getApiErrorMessage(responseData.message)
+        : `Request failed with status ${response.status}`;
+  
+      throw new ApiError({
+          message,
+          status: response.status,
+          data: responseData,
+      })
+    }
 
-  if (response.status === 204) {
-    return undefined as T;
-  }
-
-  return response.json() as Promise<T>;
+    return responseData as T;
 }
 
-async function readResponseBody(
-  response: Response,
-): Promise<unknown> {
-  const contentType = response.headers.get("content-type");
+function getApiErrorMessage(message: unknown): string {
+    if (typeof message === "string") {
+        return message;
+    }
 
-  if (contentType?.includes("application/json")) {
-    return response.json();
-  }
+    if (Array.isArray(message)) {
+        return message
+        .filter((item): item is string => typeof item === "string")
+        .join(", ");
+    }
 
-  return response.text();
+    return "An unexpected API error occurred";
 }

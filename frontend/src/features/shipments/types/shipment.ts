@@ -12,4 +12,5 @@ export type Shipment = {
   clientName: string;
   status: ShipmentStatus;
   createdAt: string;
+  updatedAt: string;
 };  

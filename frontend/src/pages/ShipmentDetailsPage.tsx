@@ -1,29 +1,16 @@
-import {
-  AlertCircle,
-  ArrowLeft,
-  LoaderCircle,
-} from "lucide-react";
-import { useNavigate, useParams } from "react-router";
+import { useParams } from "react-router";
 
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import ShipmentStatusBadge from "@/features/shipments/components/ShipmentStatusBadge";
+import ShipmentHeader from "@/features/shipments/components/details/ShipmentHeader";
+import ShipmentOverviewCard from "@/features/shipments/components/details/ShipmentOverviewCard";
 import { useShipment } from "@/features/shipments/hooks/use-shipment";
+import { AlertCircle, LoaderCircle } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 function ShipmentDetailsPage() {
-  const navigate = useNavigate();
   const { shipmentId } = useParams();
 
   const shipmentQuery = useShipment(shipmentId);
-
-  function handleBackToShipments() {
-    navigate("/shipments");
-  }
 
   if (shipmentQuery.isPending) {
     return (
@@ -44,9 +31,9 @@ function ShipmentDetailsPage() {
           <AlertCircle className="size-8 text-destructive" />
 
           <div className="text-center">
-            <h1 className="font-semibold">
+            <h2 className="font-semibold">
               Could not load shipment
-            </h1>
+            </h2>
 
             <p className="mt-1 text-sm text-muted-foreground">
               {shipmentQuery.error.message}
@@ -55,9 +42,9 @@ function ShipmentDetailsPage() {
 
           <Button
             variant="outline"
-            onClick={handleBackToShipments}
+            onClick={() => shipmentQuery.refetch()}
           >
-            Back to shipments
+            Try again
           </Button>
         </CardContent>
       </Card>
@@ -67,83 +54,10 @@ function ShipmentDetailsPage() {
   const shipment = shipmentQuery.data;
 
   return (
-    <section className="space-y-6">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={handleBackToShipments}
-      >
-        <ArrowLeft />
-        Back to shipments
-      </Button>
+    <section className="space-y-8">
+      {shipment && <ShipmentHeader shipment={shipment} />}
 
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">
-            {shipment.reference}
-          </h1>
-
-          <p className="mt-1 text-muted-foreground">
-            Shipment details and extracted information
-          </p>
-        </div>
-
-        <ShipmentStatusBadge
-          status={shipment.status}
-        />
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Overview</CardTitle>
-        </CardHeader>
-
-        <CardContent>
-          <dl className="grid gap-6 sm:grid-cols-2">
-            <div>
-              <dt className="text-sm text-muted-foreground">
-                Reference
-              </dt>
-
-              <dd className="mt-1 font-medium">
-                {shipment.reference}
-              </dd>
-            </div>
-
-            <div>
-              <dt className="text-sm text-muted-foreground">
-                Status
-              </dt>
-
-              <dd className="mt-1">
-                <ShipmentStatusBadge
-                  status={shipment.status}
-                />
-              </dd>
-            </div>
-
-            <div>
-              <dt className="text-sm text-muted-foreground">
-                Created
-              </dt>
-
-              <dd className="mt-1 font-medium">
-                {shipment.createdAt}
-              </dd>
-            </div>
-
-            <div>
-              <dt className="text-sm text-muted-foreground">
-                Updated
-              </dt>
-
-              {/* <dd className="mt-1 font-medium">
-                {shipment.updatedAt}
-              </dd> */}
-            </div>
-          </dl>
-        </CardContent>
-      </Card>
+      {shipment && <ShipmentOverviewCard shipment={shipment} />}
     </section>
   );
 }
