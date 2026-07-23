@@ -4,9 +4,12 @@ import ShipmentList from "../features/shipments/components/ShipmentList";
 import { AlertCircle, LoaderCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import CreateShipmentDialog from "@/features/shipments/components/details/CreateShipmentDialog";
+import { useState } from "react";
 
 function ShipmentsPage() {
   const shipmentsQuery = useShipments();
+  const [isCreateShipmentDialogOpen, setIsCreateShipmentDialogOpen] = useState(false);
 
   if (shipmentsQuery.isPending) {
     return (
@@ -51,9 +54,24 @@ function ShipmentsPage() {
   return (
     <section>
       <div className="mb-6">
-        <h1 className="text-3xl font-semibold tracking-tight">
-          Shipments
-        </h1>
+        <div className="flex justify-between">
+          <h1 className="text-3xl font-semibold tracking-tight">
+            Shipments
+          </h1>
+
+          <Button
+            variant="outline"
+            onClick={() => setIsCreateShipmentDialogOpen(true)}
+          >
+            Create
+          </Button>
+
+          <CreateShipmentDialog
+            open={isCreateShipmentDialogOpen}
+            onOpenChange={setIsCreateShipmentDialogOpen}
+          />
+              
+        </div>
 
         <p className="mt-1 text-muted-foreground">
           Review and manage processed shipment documents.

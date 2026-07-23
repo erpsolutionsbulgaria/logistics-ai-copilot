@@ -14,3 +14,7 @@ export type Shipment = {
   createdAt: string;
   updatedAt: string;
 };  
+
+export type CreateShipmentInput = {
+  reference: string;
+};
