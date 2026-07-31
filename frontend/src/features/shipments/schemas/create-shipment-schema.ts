@@ -1,11 +1,12 @@
 import { z } from "zod";
 
 export const createShipmentSchema = z.object({
-  reference: z
-    .string()
-    .trim()
-    .min(1, "Reference is required")
-    .max(100, "Reference must be at most 100 characters"),
+  reference: z.string().min(1),
+  clientName: z.string().min(1),
+  origin: z.string().min(1),
+  destination: z.string().min(1),
+  transportMode: z.enum(["ROAD", "AIR", "SEA", "RAIL"]).optional(),
+  notes: z.string().optional(),
 });
 
 export type CreateShipmentFormValues = z.infer<typeof createShipmentSchema>;

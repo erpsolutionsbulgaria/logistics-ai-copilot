@@ -1,3 +1,6 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -6,6 +9,12 @@ import { Input } from "@/components/ui/input";
 
 import { Textarea } from "@/components/ui/textarea";
 import { Field, FieldLabel, FieldError, FieldDescription, FieldGroup } from "@/components/ui/field";
+import { useCreateShipment } from "../../hooks/use-create-shipment";
+
+import {
+  createShipmentSchema,
+  type CreateShipmentFormValues,
+} from "@/features/shipments/schemas/create-shipment-schema";
 
 type CreateShipmentDialogProps = {
   open: boolean;
@@ -13,16 +22,33 @@ type CreateShipmentDialogProps = {
 };
 
 function CreateShipmentDialog({open, onOpenChange}: CreateShipmentDialogProps) {
-//   const navigate = useNavigate();
+  // const navigate = useNavigate();
+  const createShipmentMutation = useCreateShipment();
 
-    function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
-        event.preventDefault();
+    const {
+      handleSubmit,
+      register,
+      reset,
+      // formState: { errors },
+    } = useForm<CreateShipmentFormValues>({
+      resolver: zodResolver(createShipmentSchema),
+      defaultValues: {
+        reference: "",
+        clientName: "",
+        origin: "",
+        destination: "",
+        transportMode: undefined,
+        notes: "",
+      },
+    });
 
-        // Тук по-късно ще извикаме create shipment mutation-а.
-        console.log("Create shipment");
-
-        // След успешното създаване:
-        // onOpenChange(false);
+    function onSubmit(data: CreateShipmentFormValues) {
+        createShipmentMutation.mutate(data, {
+            onSuccess: () => {
+              reset();
+              onOpenChange(false);
+            },
+          });
     }
 
     function handleCancel() {
@@ -40,7 +66,9 @@ function CreateShipmentDialog({open, onOpenChange}: CreateShipmentDialogProps) {
       </DialogDescription>
     </DialogHeader>
 
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit(onSubmit, (err) => {
+      console.log(' ERR ', err)
+    })}>
       <FieldGroup>
         <Field>
           <FieldLabel htmlFor="referenceNumber">
@@ -48,9 +76,23 @@ function CreateShipmentDialog({open, onOpenChange}: CreateShipmentDialogProps) {
           </FieldLabel>
 
           <Input
-            id="referenceNumber"
-            name="referenceNumber"
+            id="reference"
             placeholder="SHP-2026-001"
+            {...register("reference")}
+          />
+
+          <FieldError />
+        </Field>
+
+        <Field>
+          <FieldLabel htmlFor="clientName">
+            Client name
+          </FieldLabel>
+
+          <Input
+            id="clientName"
+            placeholder="Acme Logistics"
+            {...register("clientName")}
           />
 
           <FieldError />
@@ -64,8 +106,8 @@ function CreateShipmentDialog({open, onOpenChange}: CreateShipmentDialogProps) {
 
             <Input
               id="origin"
-              name="origin"
               placeholder="Sofia, Bulgaria"
+              {...register("origin")}
             />
 
             <FieldError />
@@ -78,8 +120,8 @@ function CreateShipmentDialog({open, onOpenChange}: CreateShipmentDialogProps) {
 
             <Input
               id="destination"
-              name="destination"
               placeholder="Berlin, Germany"
+              {...register("destination")}
             />
 
             <FieldError />
@@ -144,12 +186,21 @@ function CreateShipmentDialog({open, onOpenChange}: CreateShipmentDialogProps) {
       </FieldGroup>
 
       <DialogFooter className="mt-8">
+
+        {createShipmentMutation.isError && (
+          <p className="text-sm text-destructive">
+            Failed to create shipment.
+          </p>
+        )}
+
         <Button variant="outline" type="button" onClick={handleCancel}>
           Cancel
         </Button>
 
-        <Button type="submit">
-          Create shipment
+        <Button type="submit" disabled={createShipmentMutation.isPending}>
+          {createShipmentMutation.isPending
+              ? "Creating..."
+              : "Create shipment"}
         </Button>
       </DialogFooter>
     </form>

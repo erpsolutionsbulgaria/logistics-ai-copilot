@@ -36,8 +36,8 @@ export async function apiClient<T>(
   options: ApiClientOptions = {},
 ): Promise<T> {
     const { body, headers, ...requestOptions } = options;
-  
-    const response = await fetch(`${API_URL}${path}`, {
+
+    const reqObject = {
     ...requestOptions,
 
     headers: {
@@ -51,7 +51,15 @@ export async function apiClient<T>(
         
         ...headers
         },
-    });
+
+    ...(body !== undefined
+        ? {
+            body: JSON.stringify(body),
+          }
+        : {}),
+    }
+  
+    const response = await fetch(`${API_URL}${path}`, reqObject);
 
     const contentType = response.headers.get("content-type");
   

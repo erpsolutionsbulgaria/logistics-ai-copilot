@@ -40,6 +40,10 @@ export class ShipmentsService {
       data: {
         reference: createShipmentDto.reference,
         clientName: createShipmentDto.clientName,
+        origin: createShipmentDto.origin,
+        destination: createShipmentDto.destination,
+        transportMode: createShipmentDto.transportMode,
+        notes: createShipmentDto.notes,
         status: createShipmentDto.status ?? ShipmentStatus.DRAFT,
       },
     });

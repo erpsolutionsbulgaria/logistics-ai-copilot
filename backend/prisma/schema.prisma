@@ -6,6 +6,13 @@ datasource db {
   provider = "postgresql"
 }
 
+enum TransportMode {
+  ROAD
+  AIR
+  SEA
+  RAIL
+}
+
 enum ShipmentStatus {
   DRAFT
   PROCESSING
@@ -53,10 +60,14 @@ enum ExtractedFieldStatus {
 }
 
 model Shipment {
-  id         String         @id @default(uuid())
-  reference  String
-  clientName String
-  status     ShipmentStatus @default(DRAFT)
+  id            String         @id @default(uuid())
+  reference     String         @unique
+  origin        String
+  destination   String
+  transportMode TransportMode?
+  notes         String?
+  clientName    String
+  status        ShipmentStatus @default(DRAFT)
 
   documents  Document[]
   issues     Issue[]

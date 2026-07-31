@@ -24,7 +24,6 @@ function ShipmentsPage() {
   }
 
   if (shipmentsQuery.isError) {
-    console.log('>>>> ', shipmentsQuery)
     return (
       <Card>
         <CardContent className="flex flex-col items-center gap-4 py-12">
