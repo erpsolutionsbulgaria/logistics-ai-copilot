@@ -25,6 +25,10 @@ export class PrismaService
 
     const adapter = new PrismaPg({
       connectionString,
+      ssl: {
+        rejectUnauthorized: false,
+      },
+      connectionTimeoutMillis: 10_000,
     });
 
     super({ adapter });

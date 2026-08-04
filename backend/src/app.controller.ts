@@ -25,4 +25,12 @@ export class AppController {
       externalMb: Math.round(memory.external / 1024 / 1024),
     };
   }
+
+  @Get("health")
+  getHealth() {
+    return {
+      status: "ok",
+      timestamp: new Date().toISOString(),
+    };
+  }
 }
